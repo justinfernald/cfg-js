@@ -1,13 +1,3 @@
-require('util').inspect.defaultOptions.depth = null
-
-// Terminal symbols
-// Non-terminal symbols
-// Production rules
-// Start symbol
-
-// current issue to resolve is the fact that there can be multiple possible subInputs that can be returned, so you find them all and then return them all.
-// we will switch to breadth first search instead of depth first search so that left recursion won't be an issue
-
 function CFG(symbols, startingSymbol) {
 
     return (input) => {
@@ -115,10 +105,13 @@ console.log(CFG({
     A: [
         r`hello`,
         r`${'B'}${'A'}!`,
-        r`${'A'}${'A'}`,
+        r`${'A'}${'B'}`,
         r`${'B'}`,
         // r`${'C'}`
     ],
-    B: [r`bruh`, r`test`],
-    C: [epsilon]
-}, "A")("hellohello"));
+    B: [
+        r`bruh`,
+        r`test`
+    ],
+    // C: [epsilon]
+}, "A")("bruhhellobruhtestbruh!"));
