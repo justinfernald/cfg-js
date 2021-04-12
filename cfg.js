@@ -17,18 +17,19 @@ function CFG(symbols, startingSymbol) {
 
         for (let nonTerminal of [...S[0]]) { // [...S[0]] is just copying array
             let nextPart = nonTerminal.parts[nonTerminal.cursor];
-            if (nextPart.type === "nt")
+            if (nextPart.type === "nt") {
+
                 S[0] = [...S[0], ...symbols[nextPart.value].map(s => ({ parts: s, cursor: 0, fromState: 0, from: nonTerminal.parts[nonTerminal.cursor].value }))]
+            }
         }
+        S[0] = S[0].filter((v, index, arr) => arr.findIndex(x => (JSON.stringify(x) === JSON.stringify(v))) === index); // forces unique object array
+
 
 
         // runner
 
         for (let [index, c] of Object.entries(input)) {
             index = +index;
-            console.log("\n\n\n\n\n\n\n");
-            console.log({ index, c })
-            console.log('S' + (index + 1))
             S[index + 1] = [];
 
             let finishedNonTerminals = [];
@@ -38,24 +39,22 @@ function CFG(symbols, startingSymbol) {
                 if (nextPart?.type === "t" && nextPart.value === c) {
                     if (nonTerminal.cursor + 1 === nonTerminal.parts.length)
                         finishedNonTerminals.push(nonTerminal);
-                    S[index + 1] = [...S[index + 1], { ...nonTerminal, cursor: nonTerminal.cursor + 1 }]
+                    let toAdd = { ...nonTerminal, cursor: nonTerminal.cursor + 1 };
+                    if (!S[index + 1].find(x => JSON.stringify(x) === JSON.stringify(toAdd)))
+                        S[index + 1] = [...S[index + 1], toAdd];
                 }
 
             }
-
-            // for (let nonTerminal of S[index]) { // find nonterminals that complete
-            //     let nextPart = nonTerminal.parts[nonTerminal.cursor];
-            //     if (nextPart?.type === "nt" && finishedNonTerminals.some(fNT => fNT.from === nextPart.value))
-            //         S[index + 1] = [...S[index + 1], { ...nonTerminal, cursor: nonTerminal.cursor + 1 }]
-            // }
 
             for (let fNT of finishedNonTerminals) {
                 for (let nonTerminal of S[fNT.fromState]) {
                     let nextPart = nonTerminal.parts[nonTerminal.cursor];
                     if (nextPart?.type === "nt" && fNT.from === nextPart.value) {
-                        if (nonTerminal.cursor + 1 === nonTerminal.parts.length)
+                        if (nonTerminal.cursor + 1 === nonTerminal.parts.length && !finishedNonTerminals.find(x => JSON.stringify(x) === JSON.stringify(nonTerminal)))
                             finishedNonTerminals.push(nonTerminal);
-                        S[index + 1] = [...S[index + 1], { ...nonTerminal, cursor: nonTerminal.cursor + 1 }]
+                        let toAdd = { ...nonTerminal, cursor: nonTerminal.cursor + 1 };
+                        if (!S[index + 1].find(x => JSON.stringify(x) === JSON.stringify(toAdd)))
+                            S[index + 1] = [...S[index + 1], toAdd];
                     }
                 }
             }
@@ -68,28 +67,14 @@ function CFG(symbols, startingSymbol) {
                     let nextPart = nonTerminal.parts[nonTerminal.cursor];
                     if (nextPart?.type === "nt") {// optional chaining such that it only checks if it exists
                         let toAdd = symbols[nextPart.value].map(s => ({ parts: s, cursor: 0, fromState: index + 1, from: nonTerminal.parts[nonTerminal.cursor].value }));
-                        S[index + 1] = [...S[index + 1], ...toAdd];
-                        addedOnes = [...addedOnes, ...toAdd];
+                        toAdd = toAdd.filter(y => !S[index + 1].find(x => JSON.stringify(x) === JSON.stringify(y)))
+                        if (!S[index + 1].find(x => JSON.stringify(x) === JSON.stringify(toAdd))) {
+                            S[index + 1] = [...S[index + 1], ...toAdd];
+                            addedOnes = [...addedOnes, ...toAdd];
+                        }
                     }
                 }
             }
-            // for (let nonTerminal of [...S[index + 1]]) { // find more
-            //     let nextPart = nonTerminal.parts[nonTerminal.cursor];
-            //     if (nextPart?.type === "nt") // optional chaining such that it only checks if it exists
-            //         S[index + 1] = [...S[index + 1], ...symbols[nextPart.value].map(s => ({ parts: s, cursor: 0, fromState: index + 1, from: nonTerminal.parts[nonTerminal.cursor].value }))]
-            // }
-            // for (let nonTerminal of [...S[index + 1]]) { // find more
-            //     let nextPart = nonTerminal.parts[nonTerminal.cursor];
-            //     if (nextPart?.type === "nt") // optional chaining such that it only checks if it exists
-            //         S[index + 1] = [...S[index + 1], ...symbols[nextPart.value].map(s => ({ parts: s, cursor: 0, fromState: index + 1, from: nonTerminal.parts[nonTerminal.cursor].value }))]
-            // }
-
-            S[index + 1] = S[index + 1].filter((v, index, arr) => arr.findIndex(x => (JSON.stringify(x) === JSON.stringify(v))) === index); // forces unique object array
-
-            // console.log(S[index + 1]);
-
-            // for testing
-            // if (index == 0) break;
         }
 
         // final
@@ -130,9 +115,10 @@ console.log(CFG({
     A: [
         r`hello`,
         r`${'B'}${'A'}!`,
+        r`${'A'}${'A'}`,
         r`${'B'}`,
-        r`${'C'}`
+        // r`${'C'}`
     ],
     B: [r`bruh`, r`test`],
     C: [epsilon]
-}, "A")("bruhbruh!"));
+}, "A")("hellohello"));
