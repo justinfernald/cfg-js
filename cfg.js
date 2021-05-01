@@ -109,7 +109,8 @@ function CFG(symbols, startingSymbol) {
         }
 
         // final
-        return !!S[input.length].find(x => x.fromState === 0);
+        console.log(S[input.length].find(x => x.fromState === 0 && x.cursor === x.parts.length));
+        return !!S[input.length].find(x => x.fromState === 0 && x.cursor === x.parts.length);
     }
 }
 
@@ -184,6 +185,6 @@ let grammar = CFG({
         r`${'digit'}`,
         r`${'anyNumber'}`
     ]
-}, "expr")
+}, "expr");
 
-console.log(grammar("20+(2*4)"))
+console.log(grammar("20+(2*4)+3"));
